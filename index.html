@@ -140,6 +140,7 @@ footer{margin-top:50px;padding-top:16px;border-top:2px solid var(--ink);font-siz
       <span class="pct sync" id="sync">starting…</span>
       <input type="text" id="who" placeholder="Your name" style="width:120px" oninput="setWho(this.value)">
       <button onclick="pullRemote()">Refresh</button>
+      <button onclick="pushLocal()">Send my data to team</button>
       <button onclick="exportState()">Export backup</button>
       <button onclick="importState()">Import backup</button>
       <button onclick="if(confirm('Clear every tick, number and note for the WHOLE TEAM?'))resetAll()">Reset</button>
@@ -317,7 +318,8 @@ async function pullRemote(silent){
     const d=await r.json();
     const ch=merge(d.state||{},d.times||{});
     if(ch)render();
-    setStatus('synced'+(d.by?' · last: '+d.by:''),'ok');
+    const n=Object.keys(d.state||{}).filter(k=>d.state[k]!==''&&d.state[k]!==false).length;
+    setStatus(n?('team: '+n+' items'+(d.by?' · '+d.by:'')+(d.updated?' · '+d.updated:'')):'team board is empty','ok');
   }catch(e){setStatus('offline — saved on this device only','err');}
   pulling=false;
 }
@@ -423,9 +425,25 @@ function importState(){const t=document.getElementById('io').value.trim();
   if(!t){alert('Paste an exported string into the box first.');return}
   try{S=JSON.parse(t);save();render();alert('Progress imported.')}catch(e){alert('That is not a valid exported string.')}}
 function resetAll(){const now=Date.now();for(const k of Object.keys(S)){delete S[k];T[k]=now;}save();render();schedulePush();}
+
+// Work done BEFORE sync existed has no timestamp, so it would never be pushed.
+// Stamp it once and send it up, so nothing already ticked is stranded on one device.
+const MIG='evoluent_aug_dash_migrated_v2';
+if(!localStorage.getItem(MIG)){
+  let n=0;const t=Date.now();
+  for(const k of Object.keys(S)) if(!T[k]){T[k]=t;n++;}
+  localStorage.setItem(MIG,'1');
+  if(n){save();dirty=true;}
+}
+function pushLocal(){
+  const t=Date.now();let n=0;
+  for(const k of Object.keys(S)){T[k]=t;n++;}
+  save();dirty=true;pushRemote();
+  alert('Sent '+n+' items from this device to the team. Ask the others to refresh.');
+}
 document.getElementById('who').value=WHO;
 render();
-pullRemote();
+pullRemote().then(()=>{if(dirty)pushRemote();});
 setInterval(()=>{if(!dirty)pullRemote(true)},30000);
 window.addEventListener('focus',()=>{if(!dirty)pullRemote(true)});
 </script>
