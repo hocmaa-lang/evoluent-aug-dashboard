@@ -1,0 +1,347 @@
+<title>Evoluent — August Execution Dashboard</title>
+<style>
+:root{
+  --ground:#EEF0F2;--surface:#FFFFFF;--surface-2:#F7F8F9;--surface-3:#EDF0F2;
+  --ink:#141F28;--ink-2:#43535F;--ink-3:#77868F;
+  --rule:#D6DBDF;--rule-2:#E7EAED;
+  --accent:#B4650F;--accent-soft:#F7EBD9;
+  --good:#256E5E;--good-soft:#DCEBE6;
+  --warn:#8E6206;--warn-soft:#F6E9CE;
+  --crit:#993128;--crit-soft:#F5DFDC;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --ground:#0E141A;--surface:#161F27;--surface-2:#1C262F;--surface-3:#222E38;
+  --ink:#E6ECF1;--ink-2:#A6B4BF;--ink-3:#7A8893;
+  --rule:#2A3742;--rule-2:#222E38;
+  --accent:#E9A24A;--accent-soft:#3A2A14;
+  --good:#6FC3AC;--good-soft:#16302B;
+  --warn:#E0B255;--warn-soft:#33280F;
+  --crit:#E08074;--crit-soft:#361E1A;
+}}
+:root[data-theme="dark"]{
+  --ground:#0E141A;--surface:#161F27;--surface-2:#1C262F;--surface-3:#222E38;
+  --ink:#E6ECF1;--ink-2:#A6B4BF;--ink-3:#7A8893;
+  --rule:#2A3742;--rule-2:#222E38;
+  --accent:#E9A24A;--accent-soft:#3A2A14;
+  --good:#6FC3AC;--good-soft:#16302B;
+  --warn:#E0B255;--warn-soft:#33280F;
+  --crit:#E08074;--crit-soft:#361E1A;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font-size:15px;line-height:1.55;
+ font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.mono{font-family:ui-monospace,"Cascadia Mono",Consolas,"SF Mono",Menlo,monospace;font-variant-numeric:tabular-nums}
+.wrap{max-width:1120px;margin:0 auto;padding:0 20px 80px}
+
+header.mast{background:var(--surface);border-bottom:2px solid var(--ink)}
+.mast-in{max-width:1120px;margin:0 auto;padding:26px 20px 18px}
+.eyebrow{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:700}
+h1{font-size:clamp(22px,3.4vw,32px);margin:8px 0 0;letter-spacing:-.02em;line-height:1.1}
+.sub{color:var(--ink-2);font-size:13px;margin-top:6px}
+
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:16px}
+button{font:inherit;font-size:12.5px;font-weight:600;padding:7px 13px;border-radius:4px;
+ border:1px solid var(--rule);background:var(--surface-2);color:var(--ink);cursor:pointer}
+button:hover{border-color:var(--accent);color:var(--accent)}
+button.primary{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.prog{flex:1;min-width:200px;height:9px;background:var(--surface-3);border-radius:5px;overflow:hidden;border:1px solid var(--rule-2)}
+.prog i{display:block;height:100%;background:var(--accent);width:0;transition:width .3s}
+.pct{font-size:12.5px;font-weight:700;color:var(--ink-2);white-space:nowrap}
+
+section{margin-top:34px}
+.sec-head{display:flex;gap:12px;align-items:baseline;border-bottom:1px solid var(--rule);padding-bottom:8px;margin-bottom:14px;flex-wrap:wrap}
+h2{font-size:19px;margin:0;letter-spacing:-.015em;flex:1}
+.when{font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);
+ background:var(--accent-soft);padding:3px 9px;border-radius:3px;white-space:nowrap}
+.secpct{font-size:12px;color:var(--ink-3);font-weight:700}
+p.note{color:var(--ink-2);font-size:14px;margin:0 0 14px;max-width:80ch}
+
+/* tasks */
+.task{display:grid;grid-template-columns:26px 1fr;gap:11px;padding:11px 13px;background:var(--surface);
+ border:1px solid var(--rule-2);border-radius:5px;margin-bottom:7px;align-items:start}
+.task.done{background:var(--surface-2);border-color:var(--rule-2)}
+.task.done .t-title{text-decoration:line-through;color:var(--ink-3)}
+.task input[type=checkbox]{width:17px;height:17px;margin-top:3px;accent-color:var(--accent);cursor:pointer}
+.t-title{font-weight:600;font-size:14.5px}
+.t-meta{font-size:12.5px;color:var(--ink-2);margin-top:3px}
+.t-do{font-size:13px;margin-top:5px;background:var(--surface-2);border-left:3px solid var(--accent);
+ padding:6px 10px;border-radius:0 3px 3px 0}
+.t-do.crit{border-left-color:var(--crit)}
+.t-do.good{border-left-color:var(--good)}
+.tag{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+ padding:2px 6px;border-radius:3px;margin-right:6px;vertical-align:1px}
+.tag.pause{background:var(--crit-soft);color:var(--crit)}
+.tag.bid{background:var(--warn-soft);color:var(--warn)}
+.tag.build{background:var(--good-soft);color:var(--good)}
+.tag.check{background:var(--surface-3);color:var(--ink-2)}
+
+/* metrics */
+.mgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:9px}
+.metric{background:var(--surface);border:1px solid var(--rule-2);border-radius:5px;padding:11px 13px}
+.m-name{font-weight:600;font-size:13.5px}
+.m-rule{font-size:12px;color:var(--ink-2);margin-top:3px}
+.m-row{display:flex;gap:8px;align-items:center;margin-top:8px}
+.m-row label{font-size:11px;color:var(--ink-3);font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+input[type=text]{font:inherit;font-size:13.5px;padding:5px 8px;border:1px solid var(--rule);border-radius:4px;
+ background:var(--surface-2);color:var(--ink);width:110px;font-variant-numeric:tabular-nums}
+.target{font-size:12.5px;color:var(--ink-2);font-weight:600}
+.verdict{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:3px;margin-left:auto}
+.verdict.pass{background:var(--good-soft);color:var(--good)}
+.verdict.fail{background:var(--crit-soft);color:var(--crit)}
+.verdict.none{background:var(--surface-3);color:var(--ink-3)}
+
+.scroll{overflow-x:auto;border:1px solid var(--rule);border-radius:4px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:13px;min-width:520px}
+th,td{padding:7px 11px;text-align:left;border-bottom:1px solid var(--rule-2);white-space:nowrap}
+thead th{background:var(--surface-2);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);font-weight:700}
+tbody tr:last-child td{border-bottom:0}
+td.n,th.n{text-align:right;font-family:ui-monospace,Consolas,monospace;font-variant-numeric:tabular-nums}
+.hi{background:var(--accent-soft)}
+.bad{color:var(--crit);font-weight:700}
+.gd{color:var(--good);font-weight:700}
+
+.call{border-left:3px solid var(--accent);background:var(--surface);padding:12px 15px;margin:14px 0;border-radius:0 4px 4px 0}
+.call.crit{border-left-color:var(--crit)}
+.call .ct{font-size:10px;letter-spacing:.13em;text-transform:uppercase;font-weight:700;color:var(--accent);margin-bottom:5px}
+.call.crit .ct{color:var(--crit)}
+.call p{margin:0;font-size:14px}
+
+textarea{width:100%;height:110px;font-family:ui-monospace,Consolas,monospace;font-size:11.5px;
+ padding:9px;border:1px solid var(--rule);border-radius:4px;background:var(--surface-2);color:var(--ink);resize:vertical}
+footer{margin-top:50px;padding-top:16px;border-top:2px solid var(--ink);font-size:12px;color:var(--ink-2)}
+@media print{button,.bar{display:none}.task{break-inside:avoid}}
+</style>
+
+<header class="mast">
+  <div class="mast-in">
+    <div class="eyebrow">Amazon US · Sponsored Products</div>
+    <h1>Evoluent — August Execution Dashboard</h1>
+    <div class="sub">12–31 August 2026 · Excludes B00427TAIK and B0G4TBZBSP · Target: ~$10,000 net for the month</div>
+    <div class="bar">
+      <div class="prog"><i id="pbar"></i></div>
+      <span class="pct" id="ppct">0 / 0</span>
+      <button onclick="loadTeam()">Load team master</button>
+      <button onclick="exportState()">Export progress</button>
+      <button onclick="importState()">Import progress</button>
+      <button onclick="if(confirm('Clear every tick and every number on this device?'))resetAll()">Reset</button>
+      <button class="primary" onclick="window.print()">Print</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<div class="call crit">
+  <div class="ct">Three rules that govern every decision</div>
+  <p><b>1.</b> Judge a campaign on <b>TOTAL sales</b>, not advertised-SKU sales — 40.3% of ad-driven revenue lands on a different variation. Always use <span class="mono">Spend ÷ (Advertised SKU Sales + Other SKU Sales)</span>.<br>
+  <b>2.</b> Compare that ACOS to the <b>FAMILY</b> break-even below, never the ASIN's own.<br>
+  <b>3.</b> Never change a bid and a budget in the same week on the same campaign.</p>
+</div>
+
+<section>
+  <div class="sec-head"><h2>Reference — keep open while working</h2></div>
+  <div class="scroll"><table>
+    <thead><tr><th>Family / parent</th><th>Members</th><th class="n">Jul ACOS</th><th class="n">BREAK-EVEN</th><th class="n">Headroom</th></tr></thead>
+    <tbody>
+      <tr class="hi"><td class="mono">B0FQ6478GQ</td><td>VM4RW + VM4SW</td><td class="n">5.2%</td><td class="n"><b>18.0%</b></td><td class="n gd">+12.8</td></tr>
+      <tr class="hi"><td class="mono">B08YMTGH63</td><td>VMDLW, VMDM, VMDMW, VMDL, VMDSW, VMDS</td><td class="n">7.0%</td><td class="n"><b>14.1%</b></td><td class="n gd">+7.1</td></tr>
+      <tr><td class="mono">B0BKJYDF6T</td><td>VM4S</td><td class="n">6.8%</td><td class="n">13.1%</td><td class="n">+6.3</td></tr>
+      <tr><td class="mono">B0B9RVW4J1</td><td>VM4L</td><td class="n">2.0%</td><td class="n">8.0%</td><td class="n">+6.0</td></tr>
+      <tr><td class="mono">standalone</td><td>VM4RB B00BNR76J2</td><td class="n">0%</td><td class="n">11.0%</td><td class="n gd">+11.0</td></tr>
+      <tr><td class="mono">B0C3R9F39X</td><td>Compact keyboard B0075PY6HG</td><td class="n">8.1%</td><td class="n">15.8%</td><td class="n">+7.7</td></tr>
+      <tr><td class="mono">standalone</td><td>R3K B01NBMR61A</td><td class="n bad">19.7%</td><td class="n">12.1%</td><td class="n bad">−7.6</td></tr>
+    </tbody></table></div>
+
+  <p class="note" style="margin-top:12px"><b>Net profit per unit</b> — this decides which variation gets promoted:</p>
+  <div class="scroll"><table>
+    <thead><tr><th>Model</th><th>ASIN</th><th class="n">Net / unit</th><th class="n">July ad spend</th></tr></thead>
+    <tbody>
+      <tr class="hi"><td>VM4SW wireless small</td><td class="mono">B00EZCCVTM</td><td class="n gd">$20.10</td><td class="n">$0</td></tr>
+      <tr class="hi"><td>VMDSW wireless small</td><td class="mono">B07Y8V19TC</td><td class="n gd">$17.40</td><td class="n">$0</td></tr>
+      <tr><td>VMDMW wireless medium</td><td class="mono">B07Y8V3W42</td><td class="n gd">$14.70</td><td class="n">$306</td></tr>
+      <tr><td>VMDLW wireless large</td><td class="mono">B08578T74J</td><td class="n gd">$14.20</td><td class="n">$0</td></tr>
+      <tr><td>VMDS wired small</td><td class="mono">B07Y8VQ51L</td><td class="n gd">$13.70</td><td class="n">$0</td></tr>
+      <tr><td>VM4RW wireless regular</td><td class="mono">B006P2594Y</td><td class="n">$11.50</td><td class="n">$1,780</td></tr>
+      <tr><td>VM4RB bluetooth Mac</td><td class="mono">B00BNR76J2</td><td class="n">$11.40</td><td class="n">$0</td></tr>
+      <tr><td>VM4S wired small</td><td class="mono">B004GXZ69W</td><td class="n">$5.70</td><td class="n">$440</td></tr>
+      <tr><td>VM4L left hand</td><td class="mono">B00427OTEU</td><td class="n">$5.20</td><td class="n">$140</td></tr>
+      <tr><td>VMDL wired large</td><td class="mono">B0856PZQWT</td><td class="n">$0.50</td><td class="n">$597</td></tr>
+      <tr class="hi"><td>VMDM wired medium</td><td class="mono">B07Y8VGJVS</td><td class="n bad">−$7.20</td><td class="n">$1,163</td></tr>
+    </tbody></table></div>
+</section>
+
+<div id="app"></div>
+
+<section>
+  <div class="sec-head"><h2>Sync between the team</h2></div>
+  <p class="note">Progress is saved in <b>this browser only</b> — there is no shared server state. To sync, one person clicks <b>Export progress</b>, sends the text, and the others click <b>Import progress</b> and paste it in. Suggest one owner updates the master copy after each checkpoint.</p>
+  <textarea id="io" placeholder="Export writes the current state here. To import, paste a colleague's exported text and press Import progress."></textarea>
+</section>
+
+<footer>
+  Built from Sellerboard June and July 2026 product exports with real per-SKU COGS, the 90-day Sponsored Products campaign report, the 65-day search-term report including Advertised vs Other SKU sales, the placement report, Detail Page Sales &amp; Traffic, and FBA inventory. Break-even ACOS is computed per variation family as (net profit + ad spend) ÷ revenue. The VMC is modelled at the client-supplied $50 cost, not the $29.50 held in Sellerboard.
+</footer>
+</div>
+
+<script>
+const PLAN=[
+ {id:'d0',title:'Day 0 — capture the baseline',when:'Tue 11 Aug',note:'Nothing is changed today. Without these files there is nothing to measure against.',tasks:[
+  {id:'d0a',tag:'check',t:'Export SP Campaign report, last 30 days',m:'Must include <b>7 Day Advertised SKU Sales</b> and <b>7 Day Other SKU Sales</b>',do:'Advertising → Reports → Sponsored Products → Campaign. Save as baseline_campaigns_11Aug.xlsx'},
+  {id:'d0b',tag:'check',t:'Export SP Placement report, last 30 days',m:'Baseline for the Top-of-Search share metric',do:'Save as baseline_placement_11Aug.xlsx'},
+  {id:'d0c',tag:'check',t:'Export SP Campaign report at DAILY granularity, last 60 days',m:'This is the file that settles the weekend question',do:'Unit of time: Daily. Save as daily_60d_11Aug.xlsx'},
+  {id:'d0d',tag:'check',t:'Screenshot sellable stock',m:'B07Y8VQ51L, B07Y8V19TC, B08578T74J, B0075PY6HG, B00EZCCVTM',do:'Inventory → FBA Inventory'},
+  {id:'d0e',tag:'check',t:'Record Sellerboard net and units, 1–11 Aug',m:'Evoluent brand',do:'Sellerboard → Dashboard → 01–11 Aug'},
+  {id:'d0f',tag:'bid',t:'Correct the VMC cost of goods in Sellerboard',m:'$29.50 → <b>$50.00</b> on B0G4TBZBSP',do:'CRITICAL: every profit report you have seen for months is overstated by $3,500–4,200 per month until this is fixed.',crit:1}]},
+
+ {id:'w1',title:'Week 1 — stop the losses, redirect the traffic',when:'Wed 12 – Tue 18 Aug',note:'No budget increases this week. One variable at a time.',tasks:[
+  {id:'w1p1',tag:'pause',t:'PAUSE — B07Y8VGJVS | Tacos 5 — auto',m:'True ACOS <b>232%</b> · halo 0% · family BE 14.1% · $104/mo',do:'Zero halo means it never reaches the parent listing. Cleanest cut in the account.'},
+  {id:'w1p2',tag:'pause',t:'PAUSE — B01NBMR61A | Tacos — auto',m:'True ACOS <b>90%</b> · halo 0% · BE 12.1% · $158/mo',do:''},
+  {id:'w1p3',tag:'pause',t:'PAUSE — B07Y8VGJVS | Tacos 5 — product',m:'True ACOS <b>60%</b> · halo 85% · BE 14.1% · $182/mo',do:''},
+  {id:'w1p4',tag:'pause',t:'PAUSE — B0856PZQWT | Tacos 5 — product',m:'True ACOS <b>53%</b> · halo 100% · BE 14.1% · $82/mo',do:''},
+  {id:'w1p5',tag:'pause',t:'PAUSE — B01NBMR61A | Tacos — phrase',m:'True ACOS <b>47%</b> · halo 17% · BE 12.1% · $100/mo',do:''},
+  {id:'w1p6',tag:'pause',t:'PAUSE — B0856PZQWT | Tacos 5 — phrase',m:'True ACOS <b>44%</b> · halo 66% · BE 14.1% · $59/mo',do:''},
+  {id:'w1p7',tag:'pause',t:'PAUSE — Keyboard B0075PY6HG | Tacso 20 — phrase',m:'True ACOS <b>42%</b> · halo 7% · BE 15.8% · $162/mo',do:''},
+  {id:'w1p8',tag:'pause',t:'PAUSE — B07Y8V3W42 | Tacos 5 — auto',m:'No sales at all · $10/mo',do:'Total freed across all eight: <b>$857/month</b>'},
+  {id:'w1b1',tag:'bid',t:'Bid −50% — B07Y8VGJVS | Tacos 5 — phrase',m:'True ACOS 28% vs BE 14.1%',do:'Do NOT pause. It still feeds halo into profitable siblings.'},
+  {id:'w1b2',tag:'bid',t:'Bid −45% — B01NBMR61A | Tacos — exact',m:'True ACOS 31% vs BE 12.1%',do:''},
+  {id:'w1b3',tag:'bid',t:'Bid −30% — B01NBMR61A | Tacos — product',m:'True ACOS 19% vs BE 12.1%',do:''},
+  {id:'w1v1',tag:'build',t:'SWITCH VARIATION — B07Y8VGJVS | Tacos 5 — exact',m:'Remove VMDM B07Y8VGJVS (−$7.20/unit) → add <b>VMDSW B07Y8V19TC</b> (+$17.40/unit)',do:'Add the new SKU, leave both live 48h, then remove the old one. Never delete and recreate the ad group — you would lose the keyword history.',good:1},
+  {id:'w1v2',tag:'build',t:'SWITCH VARIATION — B07Y8VGJVS | Tacos 5 — phrase',m:'Remove VMDM → add <b>VMDLW B08578T74J</b> (+$14.20/unit)',do:'',good:1},
+  {id:'w1v3',tag:'build',t:'SWITCH VARIATION — B0856PZQWT | Tacos 5 — exact',m:'Remove VMDL B0856PZQWT (+$0.50/unit) → add <b>VMDS B07Y8VQ51L</b> (+$13.70/unit)',do:'Highest-value action in the plan and it costs nothing. Expected +$1,175/month at zero extra spend.',good:1},
+  {id:'w1n1',tag:'build',t:'BUILD — EZ | VM4RB | B00BNR76J2 | Exact',m:'The only genuinely standalone unadvertised product · $11.40/unit',do:'Exact match only · bid <b>$1.10</b> · budget <b>$12/day</b> · <b>Down only</b> · Top of Search <b>+150%</b> · Product pages 0% · keywords: evoluent vm4rb, evoluent vertical mouse bluetooth, evoluent mouse for mac, bluetooth vertical mouse, vertical mouse for mac',good:1},
+  {id:'w1n2',tag:'check',t:'Do NOT build campaigns for VM4SW, VMDLW, VMDSW, VMDS',m:'All four sit inside parents that are already advertised',do:'A separate campaign would bid against your own existing campaigns on the same product page.',crit:1},
+  {id:'w1wk',tag:'bid',t:'Replace the weekend shutdown — before Sat 15 Aug',m:'Cancel the $50 cap and the switch-off entirely',do:'Apply <b>−35% bid on Sat + Sun</b> to the generic campaigns only: B07Y8V3W42 Tacos 5 (exact/phrase/product), B07Y8VGJVS Tacos 5 (exact/phrase), B0856PZQWT Tacos 5 exact, B004GXZ69W phrase, B01NBMR61A Tacos (exact/product). <b>Leave at full bid all week:</b> EZ | B006P2594Y | Manual KW, Manual KW 2, and the new VM4RB campaign. Amazon has no native day-of-week scheduler — use M19, or a bulk upload every Friday and Monday.',crit:1}]},
+
+ {id:'cA',title:'Checkpoint A',when:'Tue 19 Aug',note:'Do not start Week 2 until every number here is filled in.',metrics:[
+  {id:'a1',n:'True ACOS per surviving campaign',r:'Spend ÷ (Advertised + Other SKU Sales), last 7 days',tgt:'All below family BE',rule:'Above family BE → reduce bid 30%, re-check at Checkpoint B',free:1},
+  {id:'a2',n:'Net profit, Evoluent brand',r:'Sellerboard 12–18 Aug vs 5–11 Aug',tgt:'Up',cmp:'gt',v:0,unit:'$'},
+  {id:'a3',n:'Net per unit, family B08YMTGH63',r:'Sum net of the 6 D-line ASINs ÷ sum units',tgt:'9.50',cmp:'gte',v:9.5,unit:'$',hint:'Baseline $7.60. If unchanged, the variation switch did not take effect — verify the ad groups.'},
+  {id:'a4',n:'Brand sessions, this week',r:'Business report 12–18 Aug',tgt:'≥ 3,300',cmp:'gte',v:3300,unit:'',hint:'Run rate is ~3,470/week. A fall over 5% means restore the bids cut in Week 1.'},
+  {id:'a5',n:'Weekend vs weekday ACOS gap',r:'From daily_60d file: avg Sat+Sun ACOS minus Mon–Fri ACOS',tgt:'see rule',free:1,hint:'Gap >8 pts → deepen to −50%. 3–8 pts → keep −35%. <b><3 pts → remove the weekend reduction entirely.</b>'},
+  {id:'a6',n:'Lowest stock cover, days',r:'B07Y8VQ51L / B07Y8V19TC / B08578T74J',tgt:'≥ 14',cmp:'gte',v:14,unit:'d',hint:'Under 14 days → pause that campaign the same day.'},
+  {id:'a7',n:'Total ad spend, this week',r:'Campaign report',tgt:'≈ $200 lower',free:1,hint:'Should be roughly $857/month lower than baseline. If not, a paused campaign is still live.'}]},
+
+ {id:'w2',title:'Week 2 — put the freed budget to work',when:'Wed 19 – Tue 25 Aug',note:'Only proceed if Checkpoint A2 showed net profit rising.',tasks:[
+  {id:'w2pl',tag:'bid',t:'Placement multipliers on every surviving in-scope campaign',m:'Top of Search runs at 8.0% ACOS and 15.2% CVR; Product pages at 28.2% and 5.6%',do:'<b>Top of Search +150%</b> · <b>Product pages −50%</b> · <b>base bid −25%</b> on the same campaigns so total spend stays flat. Also switch <b>Off Amazon OFF</b> account-wide.',good:1},
+  {id:'w2s1',tag:'bid',t:'B07Y8V3W42 | Tacos 5 — exact → bid +120%, budget $45',m:'True ACOS <b>4%</b> vs BE 14.1% · budget was $8',do:''},
+  {id:'w2s2',tag:'bid',t:'EZ | B006P2594Y | Manual KW 2 → bid +100%, budget $60',m:'True ACOS <b>6%</b> vs BE 18.0% · budget was $10',do:''},
+  {id:'w2s3',tag:'bid',t:'B0856PZQWT | Tacos 5 — exact → bid +100%, budget $25',m:'True ACOS <b>6%</b> vs BE 14.1% · budget was $5',do:''},
+  {id:'w2s4',tag:'bid',t:'B07Y8V3W42 | Tacos 5 — phrase → bid +90%, budget $40',m:'True ACOS <b>7%</b> vs BE 14.1% · budget was $9',do:''},
+  {id:'w2s5',tag:'bid',t:'EZ | B006P2594Y | Manual KW → bid +30%',m:'True ACOS 14% vs BE 18.0% · budget unchanged at $400',do:''},
+  {id:'w2s6',tag:'bid',t:'B07Y8V3W42 | Tacos 5 — product → bid −20%',m:'True ACOS 19% vs BE 14.1% — above break-even',do:''},
+  {id:'w2s7',tag:'check',t:'HOLD — B07Y8VGJVS | Tacos 5 — exact',m:'Own-SKU ACOS looks like 60%. True ACOS is <b>15%</b> because 74% of its sales land on siblings.',do:'An earlier version of this plan said to cut it. That was wrong. Do not cut it.',crit:1},
+  {id:'w2s8',tag:'check',t:'HOLD — B004GXZ69W — phrase',m:'True ACOS 14% vs BE 13.1% — sitting on its break-even',do:''},
+  {id:'w2s9',tag:'bid',t:'EZ | VM4RB | Exact — if under 5.5%, bid +50%',m:'Read its true ACOS at Checkpoint A first',do:''},
+  {id:'w2ud',tag:'bid',t:'Switch 4 campaigns to Dynamic bids — Up and down',m:'Condition: exact/phrase, true ACOS below HALF the family BE, 30+ days of data',do:'<b>YES:</b> B07Y8V3W42 exact (4% vs 7.0%) · B006P2594Y Manual KW 2 (6% vs 9.0%) · B0856PZQWT exact (6% vs 7.0%) · B07Y8V3W42 phrase (7% vs 7.0%). <b>NO — keep Down only:</b> everything else, including Manual KW, B07Y8VGJVS exact, B004GXZ69W phrase and the new VM4RB.'}]},
+
+ {id:'cB',title:'Checkpoint B',when:'Tue 26 Aug',metrics:[
+  {id:'b1',n:'Campaigns above their family BE',r:'Count them',tgt:'0',cmp:'lte',v:0,unit:''},
+  {id:'b2',n:'Net profit, Evoluent brand',r:'Sellerboard 19–25 Aug',tgt:'Up again',cmp:'gt',v:0,unit:'$'},
+  {id:'b3',n:'Net per unit, family B08YMTGH63',r:'Same as A3',tgt:'11.00',cmp:'gte',v:11,unit:'$',hint:'Below $9.50 → the variation switch is not working. Revert and investigate.'},
+  {id:'b4',n:'Top of Search share of ad spend',r:'Placement report',tgt:'45',cmp:'gte',v:45,unit:'%',hint:'Below 38% → the multiplier did not apply. Re-check placement settings.'},
+  {id:'b5',n:'Total ad spend vs baseline',r:'Percent change',tgt:'≤ +15%',cmp:'lte',v:15,unit:'%',hint:'Over +15% → the base-bid offset in Week 2 was too small.'},
+  {id:'b6',n:'Brand sessions, this week',r:'Business report',tgt:'≥ 3,300',cmp:'gte',v:3300,unit:''},
+  {id:'b7',n:'Up-and-down campaigns still below BE',r:'Count of the 4 that crossed BE',tgt:'0',cmp:'lte',v:0,unit:'',hint:'Any that crossed → revert to Down only immediately.'},
+  {id:'b8',n:'Lowest stock cover, days',r:'The 5 growth ASINs',tgt:'≥ 14',cmp:'gte',v:14,unit:'d'}]},
+
+ {id:'w3',title:'Week 3 — compound',when:'Wed 26 – Sun 31 Aug',tasks:[
+  {id:'w3a',tag:'bid',t:'26 Aug — double the daily budget on every campaign below HALF its family BE',m:'Only if Checkpoint B2 showed net rising',do:''},
+  {id:'w3b',tag:'build',t:'26 Aug — harvest converting search terms into exact match',m:'Any term with 2+ orders and ACOS below family BE',do:'Add to the same campaign as new exact keywords.'},
+  {id:'w3c',tag:'build',t:'27 Aug — apply the variation switch to family B0FQ6478GQ',m:'Promote <b>VM4SW B00EZCCVTM</b> ($20.10/unit) ahead of VM4RW B006P2594Y ($11.50/unit) in Manual KW 2',do:'Only if Checkpoint B3 reached $11.00+ net per unit.',good:1},
+  {id:'w3d',tag:'bid',t:'28 Aug — add negative exact keywords',m:'Any term with 10+ clicks and zero orders in the last 14 days',do:'Across all surviving campaigns.'},
+  {id:'w3e',tag:'check',t:'31 Aug — freeze all changes',m:'Let the month close cleanly so the September baseline is readable',do:''}]},
+
+ {id:'cF',title:'Final review',when:'Mon 1 Sep',metrics:[
+  {id:'f1',n:'Revenue, in-scope products',r:'Sellerboard, August, excluding B00427TAIK and VMC',tgt:'85000',cmp:'gte',v:85000,unit:'$',hint:'July baseline $79,003'},
+  {id:'f2',n:'Net profit, in-scope products',r:'Same scope',tgt:'9800',cmp:'gte',v:9800,unit:'$',hint:'July baseline $7,523'},
+  {id:'f3',n:'Net per unit, D family',r:'Sellerboard',tgt:'11.00',cmp:'gte',v:11,unit:'$',hint:'July baseline $7.60'},
+  {id:'f4',n:'Top of Search share of spend',r:'Placement report',tgt:'45',cmp:'gte',v:45,unit:'%',hint:'July baseline 29%'},
+  {id:'f5',n:'Account net incl. B00427TAIK + VMC',r:'Sellerboard, whole brand',tgt:'10000',cmp:'gte',v:10000,unit:'$',hint:'July ~$8,500. This is the headline goal.'}]},
+
+ {id:'open',title:'Open items to resolve during the month',when:'ongoing',tasks:[
+  {id:'o1',tag:'check',t:'Investigate VM4L B00427OTEU',m:'Fell from 140 units in June to 80 in July; net halved from $911 to $417 on only $140 of ad spend',do:'Not a PPC problem — stock or ranking. Needs a separate investigation; this plan does not address it.',crit:1},
+  {id:'o2',tag:'check',t:'Review refund rates before Week 3',m:'VMDMW at <b>21.7%</b>, VMDLW at <b>17.5%</b>',do:'Both get more traffic in this plan, which amplifies returns. Check the listing copy for size and connection accuracy.'},
+  {id:'o3',tag:'check',t:'Confirm which net figure the client tracks',m:'Sellerboard shows $12,012 brand-level for July; ~$8,240 excluding the VMC; the client quoted $7,900',do:''},
+  {id:'o4',tag:'check',t:'After the B00427TAIK price change completes, revisit two frozen campaigns',m:'Evoluent auto at 9% true ACOS, EZ | Wired Mouse | Brand KW at 12%',do:'Both have material unused headroom that the freeze is currently blocking.'}]}
+];
+
+const KEY='evoluent_aug_dash_v1';
+let S=JSON.parse(localStorage.getItem(KEY)||'{}');
+const save=()=>localStorage.setItem(KEY,JSON.stringify(S));
+
+function verdict(m){
+  const raw=S['m_'+m.id];
+  if(m.free||!m.cmp) return raw?['pass','logged']:['none','—'];
+  if(raw===undefined||raw==='') return ['none','—'];
+  const x=parseFloat(String(raw).replace(/[^0-9.\-]/g,''));
+  if(isNaN(x)) return ['none','—'];
+  let ok;
+  if(m.cmp==='gte')ok=x>=m.v; else if(m.cmp==='lte')ok=x<=m.v; else ok=x>m.v;
+  return ok?['pass','on target']:['fail','off target'];
+}
+
+function render(){
+  let h='';
+  for(const s of PLAN){
+    const items=s.tasks||[];
+    const done=items.filter(t=>S['t_'+t.id]).length;
+    h+='<section><div class="sec-head"><h2>'+s.title+'</h2>'+
+       (items.length?'<span class="secpct">'+done+' / '+items.length+'</span>':'')+
+       '<span class="when">'+s.when+'</span></div>';
+    if(s.note)h+='<p class="note">'+s.note+'</p>';
+    for(const t of items){
+      const d=S['t_'+t.id]?' done':'';
+      h+='<div class="task'+d+'"><input type="checkbox" id="t_'+t.id+'"'+(S['t_'+t.id]?' checked':'')+
+         ' onchange="tog(\''+t.id+'\')"><div><div class="t-title"><span class="tag '+t.tag+'">'+t.tag+'</span>'+t.t+'</div>'+
+         (t.m?'<div class="t-meta">'+t.m+'</div>':'')+
+         (t.do?'<div class="t-do'+(t.crit?' crit':t.good?' good':'')+'">'+t.do+'</div>':'')+'</div></div>';
+    }
+    if(s.metrics){
+      h+='<div class="mgrid">';
+      for(const m of s.metrics){
+        const [cls,lbl]=verdict(m);
+        h+='<div class="metric"><div class="m-name">'+m.n+'</div><div class="m-rule">'+m.r+'</div>'+
+           '<div class="m-row"><label>Actual</label><input type="text" value="'+(S['m_'+m.id]||'')+
+           '" oninput="setm(\''+m.id+'\',this.value)" placeholder="'+(m.unit||'')+'">'+
+           '<span class="target">target '+m.tgt+'</span><span class="verdict '+cls+'">'+lbl+'</span></div>'+
+           (m.hint?'<div class="m-rule" style="margin-top:6px">'+m.hint+'</div>':'')+'</div>';
+      }
+      h+='</div>';
+    }
+    h+='</section>';
+  }
+  document.getElementById('app').innerHTML=h;
+  const all=PLAN.flatMap(s=>s.tasks||[]);
+  const dn=all.filter(t=>S['t_'+t.id]).length;
+  document.getElementById('pbar').style.width=(all.length?dn/all.length*100:0)+'%';
+  document.getElementById('ppct').textContent=dn+' / '+all.length+' tasks';
+}
+function tog(id){S['t_'+id]=!S['t_'+id];save();render()}
+function setm(id,v){S['m_'+id]=v;save();
+  const all=PLAN.flatMap(s=>s.metrics||[]);const m=all.find(x=>x.id===id);
+  if(m){const el=document.querySelector('#app');const [c,l]=verdict(m);
+    const nodes=el.querySelectorAll('.metric');
+    nodes.forEach(nd=>{if(nd.querySelector('.m-name').textContent===m.n){
+      const v=nd.querySelector('.verdict');v.className='verdict '+c;v.textContent=l;}});}
+}
+function exportState(){document.getElementById('io').value=JSON.stringify(S);
+  document.getElementById('io').scrollIntoView({behavior:'smooth'});
+  document.getElementById('io').select();}
+function importState(){const t=document.getElementById('io').value.trim();
+  if(!t){alert('Paste an exported string into the box first.');return}
+  try{S=JSON.parse(t);save();render();alert('Progress imported.')}catch(e){alert('That is not a valid exported string.')}}
+function resetAll(){S={};save();render()}
+async function loadTeam(){
+  try{
+    const r=await fetch('state.json?t='+Date.now());
+    if(!r.ok)throw 0;
+    const d=await r.json();
+    const n=Object.keys(d.state||{}).length;
+    if(!confirm('Load the team master saved '+(d.updated||'(no date)')+' by '+(d.by||'unknown')+'?\n'+n+' entries. This replaces what is on this device.'))return;
+    S=d.state;save();render();
+  }catch(e){alert('No team master found yet.\n\nTo publish one: click Export progress, then commit that text to state.json in the repo as {"updated":"...","by":"...","state":{...}}')}
+}
+render();
+</script>
