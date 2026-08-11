@@ -132,7 +132,7 @@ footer{margin-top:50px;padding-top:16px;border-top:2px solid var(--ink);font-siz
   <div class="mast-in">
     <div class="eyebrow">Amazon US · Sponsored Products</div>
     <h1>Evoluent — August Execution Dashboard</h1>
-    <div class="sub"><b>BUILD 4 · team sync ON</b> — if you do not see this line, you are on a cached old copy: press Ctrl+Shift+R (Cmd+Shift+R on Mac).<br>12–31 August 2026 · Excludes B00427TAIK and B0G4TBZBSP · Target: ~$10,000 net for the month</div>
+    <div class="sub"><b>BUILD 5 · team sync ON</b> — if you do not see this line, you are on a cached old copy: press Ctrl+Shift+R (Cmd+Shift+R on Mac).<br>12–31 August 2026 · Excludes B00427TAIK and B0G4TBZBSP · Target: ~$10,000 net for the month</div>
     <div class="bar">
       <div class="prog"><i id="pbar"></i></div>
       <span class="pct" id="ppct">0 / 0</span>
@@ -341,23 +341,20 @@ async function pushRemote(){
   }catch(e){setStatus('could not sync — will retry','err');setTimeout(schedulePush,8000);}
 }
 async function diag(){
-  let out="BUILD 4
-";
-  out+="This device holds: "+Object.keys(S).length+" items
-";
-  out+="Your name: "+(WHO||"(not set)")+"
-";
-  try{const r=await fetch(BLOB+"?t="+Date.now(),{cache:"no-store"});
-    const d=await r.json();
-    out+="Server reachable: YES (HTTP "+r.status+")
-";
-    out+="Server holds: "+Object.keys(d.state||{}).length+" items
-";
-    out+="Last written by: "+(d.by||"?")+" at "+(d.updated||"?")+"
-";
-  }catch(e){out+="Server reachable: NO — this browser or network is blocking it.
-Ask IT about jsonblob.com, or try a phone on mobile data.
-";}
+  const NL = String.fromCharCode(10);
+  let out = "BUILD 5" + NL;
+  out += "This device holds: " + Object.keys(S).length + " items" + NL;
+  out += "Your name: " + (WHO || "(not set)") + NL;
+  try{
+    const r = await fetch(BLOB + "?t=" + Date.now(), {cache:"no-store"});
+    const d = await r.json();
+    out += "Server reachable: YES (HTTP " + r.status + ")" + NL;
+    out += "Server holds: " + Object.keys(d.state||{}).length + " items" + NL;
+    out += "Last written by: " + (d.by||"?") + " at " + (d.updated||"?") + NL;
+  }catch(e){
+    out += "Server reachable: NO - this browser or network is blocking it." + NL;
+    out += "Try a phone on mobile data, or ask IT about jsonblob.com" + NL;
+  }
   alert(out);
 }
 function setWho(v){WHO=v;localStorage.setItem(NKEY,v);if(dirty)schedulePush();}
