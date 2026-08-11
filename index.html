@@ -77,6 +77,17 @@ p.note{color:var(--ink-2);font-size:14px;margin:0 0 14px;max-width:80ch}
 .tag.build{background:var(--good-soft);color:var(--good)}
 .tag.check{background:var(--surface-3);color:var(--ink-2)}
 
+/* per-line notes */
+.t-note{margin-top:7px;display:flex;gap:7px;align-items:flex-start}
+.t-note label{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+ color:var(--ink-3);padding-top:7px;white-space:nowrap}
+.t-note textarea{flex:1;min-height:30px;height:30px;font-family:inherit;font-size:13px;line-height:1.4;
+ padding:5px 8px;border:1px dashed var(--rule);border-radius:4px;background:transparent;color:var(--ink);resize:vertical}
+.t-note textarea:focus{background:var(--surface-2);border-style:solid;border-color:var(--accent)}
+.t-note textarea::placeholder{color:var(--ink-3);opacity:.65}
+.t-note.has textarea{background:var(--accent-soft);border-style:solid;border-color:var(--accent);height:auto;min-height:44px}
+.t-note.has label{color:var(--accent)}
+
 /* metrics */
 .mgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:9px}
 .metric{background:var(--surface);border:1px solid var(--rule-2);border-radius:5px;padding:11px 13px}
@@ -122,6 +133,7 @@ footer{margin-top:50px;padding-top:16px;border-top:2px solid var(--ink);font-siz
     <div class="bar">
       <div class="prog"><i id="pbar"></i></div>
       <span class="pct" id="ppct">0 / 0</span>
+      <span class="pct" id="ncount" style="color:var(--accent)">0 notes</span>
       <button onclick="loadTeam()">Load team master</button>
       <button onclick="exportState()">Export progress</button>
       <button onclick="importState()">Import progress</button>
@@ -296,7 +308,11 @@ function render(){
       h+='<div class="task'+d+'"><input type="checkbox" id="t_'+t.id+'"'+(S['t_'+t.id]?' checked':'')+
          ' onchange="tog(\''+t.id+'\')"><div><div class="t-title"><span class="tag '+t.tag+'">'+t.tag+'</span>'+t.t+'</div>'+
          (t.m?'<div class="t-meta">'+t.m+'</div>':'')+
-         (t.do?'<div class="t-do'+(t.crit?' crit':t.good?' good':'')+'">'+t.do+'</div>':'')+'</div></div>';
+         (t.do?'<div class="t-do'+(t.crit?' crit':t.good?' good':'')+'">'+t.do+'</div>':'')+
+         '<div class="t-note'+(S['n_'+t.id]?' has':'')+'" id="nw_'+t.id+'"><label>Notes</label>'+
+         '<textarea placeholder="What you actually did, what you saw, anything to flag…" '+
+         'oninput="setn(\''+t.id+'\',this)">'+esc(S['n_'+t.id]||'')+'</textarea></div>'+
+         '</div></div>';
     }
     if(s.metrics){
       h+='<div class="mgrid">';
@@ -306,7 +322,11 @@ function render(){
            '<div class="m-row"><label>Actual</label><input type="text" value="'+(S['m_'+m.id]||'')+
            '" oninput="setm(\''+m.id+'\',this.value)" placeholder="'+(m.unit||'')+'">'+
            '<span class="target">target '+m.tgt+'</span><span class="verdict '+cls+'">'+lbl+'</span></div>'+
-           (m.hint?'<div class="m-rule" style="margin-top:6px">'+m.hint+'</div>':'')+'</div>';
+           (m.hint?'<div class="m-rule" style="margin-top:6px">'+m.hint+'</div>':'')+
+           '<div class="t-note'+(S['n_'+m.id]?' has':'')+'" id="nw_'+m.id+'"><label>Notes</label>'+
+           '<textarea placeholder="Why the number moved, what you decided…" '+
+           'oninput="setn(\''+m.id+'\',this)">'+esc(S['n_'+m.id]||'')+'</textarea></div>'+
+           '</div>';
       }
       h+='</div>';
     }
@@ -317,8 +337,22 @@ function render(){
   const dn=all.filter(t=>S['t_'+t.id]).length;
   document.getElementById('pbar').style.width=(all.length?dn/all.length*100:0)+'%';
   document.getElementById('ppct').textContent=dn+' / '+all.length+' tasks';
+  document.getElementById('ncount').textContent=
+    Object.keys(S).filter(k=>k.startsWith('n_')&&S[k]&&String(S[k]).trim()).length+' notes';
+  document.querySelectorAll('.t-note textarea').forEach(el=>{
+    if(el.value){el.style.height='auto';el.style.height=Math.max(30,el.scrollHeight)+'px';}
+  });
 }
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
 function tog(id){S['t_'+id]=!S['t_'+id];save();render()}
+function setn(id,el){
+  S['n_'+id]=el.value;save();
+  const w=document.getElementById('nw_'+id);
+  if(w)w.classList.toggle('has',!!el.value.trim());
+  el.style.height='auto';el.style.height=Math.max(30,el.scrollHeight)+'px';
+  const n=document.getElementById('ncount');
+  if(n)n.textContent=Object.keys(S).filter(k=>k.startsWith('n_')&&S[k]&&String(S[k]).trim()).length+' notes';
+}
 function setm(id,v){S['m_'+id]=v;save();
   const all=PLAN.flatMap(s=>s.metrics||[]);const m=all.find(x=>x.id===id);
   if(m){const el=document.querySelector('#app');const [c,l]=verdict(m);
