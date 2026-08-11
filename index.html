@@ -49,6 +49,9 @@ button.primary{background:var(--ink);color:var(--surface);border-color:var(--ink
 .prog{flex:1;min-width:200px;height:9px;background:var(--surface-3);border-radius:5px;overflow:hidden;border:1px solid var(--rule-2)}
 .prog i{display:block;height:100%;background:var(--accent);width:0;transition:width .3s}
 .pct{font-size:12.5px;font-weight:700;color:var(--ink-2);white-space:nowrap}
+.sync{padding:3px 9px;border-radius:3px;background:var(--surface-3);color:var(--ink-3);font-size:11.5px}
+.sync.ok{background:var(--good-soft);color:var(--good)}
+.sync.err{background:var(--crit-soft);color:var(--crit)}
 
 section{margin-top:34px}
 .sec-head{display:flex;gap:12px;align-items:baseline;border-bottom:1px solid var(--rule);padding-bottom:8px;margin-bottom:14px;flex-wrap:wrap}
@@ -134,10 +137,12 @@ footer{margin-top:50px;padding-top:16px;border-top:2px solid var(--ink);font-siz
       <div class="prog"><i id="pbar"></i></div>
       <span class="pct" id="ppct">0 / 0</span>
       <span class="pct" id="ncount" style="color:var(--accent)">0 notes</span>
-      <button onclick="loadTeam()">Load team master</button>
-      <button onclick="exportState()">Export progress</button>
-      <button onclick="importState()">Import progress</button>
-      <button onclick="if(confirm('Clear every tick and every number on this device?'))resetAll()">Reset</button>
+      <span class="pct sync" id="sync">starting…</span>
+      <input type="text" id="who" placeholder="Your name" style="width:120px" oninput="setWho(this.value)">
+      <button onclick="pullRemote()">Refresh</button>
+      <button onclick="exportState()">Export backup</button>
+      <button onclick="importState()">Import backup</button>
+      <button onclick="if(confirm('Clear every tick, number and note for the WHOLE TEAM?'))resetAll()">Reset</button>
       <button class="primary" onclick="window.print()">Print</button>
     </div>
   </div>
@@ -188,8 +193,8 @@ footer{margin-top:50px;padding-top:16px;border-top:2px solid var(--ink);font-siz
 
 <section>
   <div class="sec-head"><h2>Sync between the team</h2></div>
-  <p class="note">Progress is saved in <b>this browser only</b> — there is no shared server state. To sync, one person clicks <b>Export progress</b>, sends the text, and the others click <b>Import progress</b> and paste it in. Suggest one owner updates the master copy after each checkpoint.</p>
-  <textarea id="io" placeholder="Export writes the current state here. To import, paste a colleague's exported text and press Import progress."></textarea>
+  <p class="note">Ticks, numbers and notes now sync <b>automatically for the whole team</b>. Type your name in the header so edits are attributed. Changes save about a second after you stop typing, and the page re-checks for other people every 30 seconds and whenever you switch back to the tab. Two people editing <i>different</i> lines is safe — the merge is per line, newest wins. Two people editing the <i>same</i> line at the same second is not, so agree who owns which section. <b>Anyone with this URL can read and write</b>, so treat it as internal.</p>
+  <textarea id="io" placeholder="Backup only — Export writes a snapshot here, Import restores one."></textarea>
 </section>
 
 <footer>
@@ -280,8 +285,59 @@ const PLAN=[
 ];
 
 const KEY='evoluent_aug_dash_v1';
+const TKEY='evoluent_aug_dash_times_v1';
+const NKEY='evoluent_aug_dash_who';
+const BLOB='https://jsonblob.com/api/jsonBlob/019ff05c-8d05-710e-a133-ebeb42af7cf2';
 let S=JSON.parse(localStorage.getItem(KEY)||'{}');
-const save=()=>localStorage.setItem(KEY,JSON.stringify(S));
+let T=JSON.parse(localStorage.getItem(TKEY)||'{}');
+let WHO=localStorage.getItem(NKEY)||'';
+let pushTimer=null,pulling=false,dirty=false;
+
+function save(){localStorage.setItem(KEY,JSON.stringify(S));localStorage.setItem(TKEY,JSON.stringify(T));}
+function stamp(k){T[k]=Date.now();dirty=true;schedulePush();}
+function setStatus(txt,cls){const e=document.getElementById('sync');if(e){e.textContent=txt;e.className='pct sync '+(cls||'');}}
+
+// merge by newest-per-key so two people editing different lines never overwrite each other
+function merge(rS,rT){
+  let changed=false;
+  const keys=new Set([...Object.keys(rS||{}),...Object.keys(S)]);
+  for(const k of keys){
+    const lt=T[k]||0, rt=(rT&&rT[k])||0;
+    if(rt>lt){ if(rS[k]===undefined) delete S[k]; else S[k]=rS[k]; T[k]=rt; changed=true; }
+  }
+  if(changed){localStorage.setItem(KEY,JSON.stringify(S));localStorage.setItem(TKEY,JSON.stringify(T));}
+  return changed;
+}
+async function pullRemote(silent){
+  if(pulling)return; pulling=true;
+  if(!silent)setStatus('syncing…','');
+  try{
+    const r=await fetch(BLOB+'?t='+Date.now(),{cache:'no-store'});
+    if(!r.ok)throw 0;
+    const d=await r.json();
+    const ch=merge(d.state||{},d.times||{});
+    if(ch)render();
+    setStatus('synced'+(d.by?' · last: '+d.by:''),'ok');
+  }catch(e){setStatus('offline — saved on this device only','err');}
+  pulling=false;
+}
+function schedulePush(){
+  clearTimeout(pushTimer);
+  setStatus('saving…','');
+  pushTimer=setTimeout(pushRemote,1200);
+}
+async function pushRemote(){
+  try{
+    const r0=await fetch(BLOB+'?t='+Date.now(),{cache:'no-store'});
+    if(r0.ok){const d=await r0.json();if(merge(d.state||{},d.times||{}))render();}
+    const body={updated:new Date().toISOString().slice(0,16).replace('T',' '),by:WHO||'unnamed',state:S,times:T};
+    const r=await fetch(BLOB,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!r.ok)throw 0;
+    dirty=false;
+    setStatus('synced · you','ok');
+  }catch(e){setStatus('could not sync — will retry','err');setTimeout(schedulePush,8000);}
+}
+function setWho(v){WHO=v;localStorage.setItem(NKEY,v);if(dirty)schedulePush();}
 
 function verdict(m){
   const raw=S['m_'+m.id];
@@ -344,16 +400,16 @@ function render(){
   });
 }
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
-function tog(id){S['t_'+id]=!S['t_'+id];save();render()}
+function tog(id){S['t_'+id]=!S['t_'+id];stamp('t_'+id);save();render()}
 function setn(id,el){
-  S['n_'+id]=el.value;save();
+  S['n_'+id]=el.value;stamp('n_'+id);save();
   const w=document.getElementById('nw_'+id);
   if(w)w.classList.toggle('has',!!el.value.trim());
   el.style.height='auto';el.style.height=Math.max(30,el.scrollHeight)+'px';
   const n=document.getElementById('ncount');
   if(n)n.textContent=Object.keys(S).filter(k=>k.startsWith('n_')&&S[k]&&String(S[k]).trim()).length+' notes';
 }
-function setm(id,v){S['m_'+id]=v;save();
+function setm(id,v){S['m_'+id]=v;stamp('m_'+id);save();
   const all=PLAN.flatMap(s=>s.metrics||[]);const m=all.find(x=>x.id===id);
   if(m){const el=document.querySelector('#app');const [c,l]=verdict(m);
     const nodes=el.querySelectorAll('.metric');
@@ -366,16 +422,10 @@ function exportState(){document.getElementById('io').value=JSON.stringify(S);
 function importState(){const t=document.getElementById('io').value.trim();
   if(!t){alert('Paste an exported string into the box first.');return}
   try{S=JSON.parse(t);save();render();alert('Progress imported.')}catch(e){alert('That is not a valid exported string.')}}
-function resetAll(){S={};save();render()}
-async function loadTeam(){
-  try{
-    const r=await fetch('state.json?t='+Date.now());
-    if(!r.ok)throw 0;
-    const d=await r.json();
-    const n=Object.keys(d.state||{}).length;
-    if(!confirm('Load the team master saved '+(d.updated||'(no date)')+' by '+(d.by||'unknown')+'?\n'+n+' entries. This replaces what is on this device.'))return;
-    S=d.state;save();render();
-  }catch(e){alert('No team master found yet.\n\nTo publish one: click Export progress, then commit that text to state.json in the repo as {"updated":"...","by":"...","state":{...}}')}
-}
+function resetAll(){const now=Date.now();for(const k of Object.keys(S)){delete S[k];T[k]=now;}save();render();schedulePush();}
+document.getElementById('who').value=WHO;
 render();
+pullRemote();
+setInterval(()=>{if(!dirty)pullRemote(true)},30000);
+window.addEventListener('focus',()=>{if(!dirty)pullRemote(true)});
 </script>
