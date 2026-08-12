@@ -132,7 +132,7 @@ footer{margin-top:50px;padding-top:16px;border-top:2px solid var(--ink);font-siz
   <div class="mast-in">
     <div class="eyebrow">Amazon US · Sponsored Products</div>
     <h1>Evoluent — August Execution Dashboard</h1>
-    <div class="sub"><b>BUILD 12 · team sync ON</b> — if you do not see this line, you are on a cached old copy: press Ctrl+Shift+R (Cmd+Shift+R on Mac).<br>12–31 August 2026 · Excludes B00427TAIK and B0G4TBZBSP · Target: ~$10,000 net for the month — baseline $7,352 (+36%)</div>
+    <div class="sub"><b>BUILD 13 · sync DOWN</b> — if you do not see this line, you are on a cached old copy: press Ctrl+Shift+R (Cmd+Shift+R on Mac).<br>12–31 August 2026 · Excludes B00427TAIK and B0G4TBZBSP · Target: ~$10,000 net for the month — baseline $7,352 (+36%)</div>
     <div class="bar">
       <div class="prog"><i id="pbar"></i></div>
       <span class="pct" id="ppct">0 / 0</span>
@@ -288,7 +288,44 @@ const BLOB='https://jsonblob.com/api/jsonBlob/019ff05c-8d05-710e-a133-ebeb42af7c
 let S=JSON.parse(localStorage.getItem(KEY)||'{}');
 let T=JSON.parse(localStorage.getItem(TKEY)||'{}');
 let WHO=localStorage.getItem(NKEY)||'';
-let pushTimer=null,pulling=false,dirty=false;
+let pushTimer=null,pulling=false,dirty=false,writeFails=0,RO=false;
+
+// The shared store started refusing writes (HTTP 403) on 12 Aug 2026. Reads still work.
+// Rather than loop on a red error, drop to a truthful read-only mode and make it
+// impossible to lose work: everything stays in localStorage, and one button hands
+// the whole state over as text that can be pasted into WhatsApp or email.
+function readOnly(why){
+  RO=true;clearTimeout(pushTimer);
+  setStatus(why==='blocked'?'team sync is DOWN — saved on this device only':'team sync unreachable — saved on this device only','err');
+  const bar=document.querySelector('.bar');
+  if(bar&&!document.getElementById('robar')){
+    const d=document.createElement('div');
+    d.id='robar';d.style.cssText='flex-basis:100%;background:var(--crit-soft);color:var(--crit);border:1px solid var(--crit);border-radius:4px;padding:9px 12px;font-size:13px;line-height:1.5';
+    d.innerHTML='<b>Team sync is down.</b> The shared storage provider began refusing writes on 12 Aug. '+
+      'Your ticks and notes are still being saved <b>on this device</b> and nothing you have already written is lost — '+
+      'but they will not reach anyone else until a new backend is connected. '+
+      'Use <b>Copy my changes</b> and send the text to the other person in the meantime.';
+    bar.appendChild(d);
+  }
+  if(bar&&!document.getElementById('cpbtn')){
+    const b=document.createElement('button');
+    b.id='cpbtn';b.className='primary';b.textContent='Copy my changes';
+    b.onclick=function(){
+      const lines=[];
+      for(const k of Object.keys(S)){
+        if(!S[k]&&S[k]!==0)continue;
+        const id=k.slice(2);
+        if(k[0]==='t')lines.push('[x] '+id);
+        else if(k[0]==='n')lines.push('    note '+id+': '+S[k]);
+        else if(k[0]==='m')lines.push('    metric '+id+': '+S[k]);
+      }
+      const txt=(WHO||'unnamed')+' — '+new Date().toISOString().slice(0,16).replace('T',' ')+'\n'+lines.join('\n');
+      navigator.clipboard.writeText(txt).then(function(){b.textContent='Copied — now paste it to your teammate';
+        setTimeout(function(){b.textContent='Copy my changes';},4000);});
+    };
+    bar.insertBefore(b,bar.firstChild);
+  }
+}
 
 function save(){localStorage.setItem(KEY,JSON.stringify(S));localStorage.setItem(TKEY,JSON.stringify(T));}
 function stamp(k){T[k]=Date.now();dirty=true;schedulePush();}
@@ -320,6 +357,7 @@ async function pullRemote(silent){
   pulling=false;
 }
 function schedulePush(){
+  if(RO)return;
   clearTimeout(pushTimer);
   setStatus('saving…','');
   pushTimer=setTimeout(pushRemote,1200);
@@ -330,14 +368,19 @@ async function pushRemote(){
     if(r0.ok){const d=await r0.json();if(merge(d.state||{},d.times||{}))render();}
     const body={updated:new Date().toISOString().slice(0,16).replace('T',' '),by:WHO||'unnamed',state:S,times:T};
     const r=await fetch(BLOB,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-    if(!r.ok)throw 0;
-    dirty=false;
+    if(!r.ok)throw r.status;
+    dirty=false;writeFails=0;
     setStatus('synced · you','ok');
-  }catch(e){setStatus('could not sync — will retry','err');setTimeout(schedulePush,8000);}
+  }catch(e){
+    // 403/401 = the storage provider is refusing writes. Retrying forever just burns
+    // battery and shows a permanent red error. Stop, and tell the truth instead.
+    if(e===403||e===401||++writeFails>=3){readOnly(e===403||e===401?'blocked':'unreachable');return;}
+    setStatus('could not sync — will retry','err');setTimeout(schedulePush,8000);
+  }
 }
 async function diag(){
   const NL = String.fromCharCode(10);
-  let out = "BUILD 12" + NL;
+  let out = "BUILD 13" + NL;
   out += "This device holds: " + Object.keys(S).length + " items" + NL;
   out += "Your name: " + (WHO || "(not set)") + NL;
   try{
