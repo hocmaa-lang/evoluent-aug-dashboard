@@ -132,7 +132,7 @@ footer{margin-top:50px;padding-top:16px;border-top:2px solid var(--ink);font-siz
   <div class="mast-in">
     <div class="eyebrow">Amazon US · Sponsored Products</div>
     <h1>Evoluent — August Execution Dashboard</h1>
-    <div class="sub"><b>BUILD 7 · team sync ON</b> — if you do not see this line, you are on a cached old copy: press Ctrl+Shift+R (Cmd+Shift+R on Mac).<br>12–31 August 2026 · Excludes B00427TAIK and B0G4TBZBSP · Target: ~$10,000 net for the month</div>
+    <div class="sub"><b>BUILD 8 · team sync ON</b> — if you do not see this line, you are on a cached old copy: press Ctrl+Shift+R (Cmd+Shift+R on Mac).<br>12–31 August 2026 · Excludes B00427TAIK and B0G4TBZBSP · Target: ~$10,000 net for the month</div>
     <div class="bar">
       <div class="prog"><i id="pbar"></i></div>
       <span class="pct" id="ppct">0 / 0</span>
@@ -214,7 +214,7 @@ const PLAN=[
   {id:'d0e',tag:'check',t:'Record Sellerboard net and units, 1–11 Aug',m:'Evoluent brand',do:'Sellerboard → Dashboard → 01–11 Aug'},
   {id:'d0f',tag:'bid',t:'Correct the VMC cost of goods in Sellerboard',m:'$29.50 → <b>$50.00</b> on B0G4TBZBSP',do:'CRITICAL: every profit report you have seen for months is overstated by $3,500–4,200 per month until this is fixed.',crit:1}]},
 
- {id:'w1',title:'Week 1 — stop the losses, redirect the traffic',when:'Wed 12 – Tue 18 Aug',note:'No budget increases this week. One variable at a time.',tasks:[
+ {id:'w1',title:'Week 1 — stop the losses, redirect the traffic',when:'Wed 12 – Tue 18 Aug',note:'No budget increases this week. One variable at a time. — <b>Withdrawn 12 Aug:</b> the three SWITCH VARIATION tasks were removed. Their projected +$1,175/month rested on an unmeasured assumption (that changing the advertised SKU steers which sibling the shopper buys). The search-term data shows the opposite: on B0856PZQWT | Tacos 5 — exact, 100% of sales already land on a sibling even when the perfectly matching size was the one advertised. Do not reinstate without a controlled test.',tasks:[
   {id:'w1p1',tag:'pause',t:'PAUSE — B07Y8VGJVS | Tacos 5 — auto',m:'True ACOS <b>232%</b> · halo 0% · family BE 14.1% · $104/mo',do:'Zero halo means it never reaches the parent listing. Cleanest cut in the account.'},
   {id:'w1p2',tag:'pause',t:'PAUSE — B01NBMR61A | Tacos — auto',m:'True ACOS <b>90%</b> · halo 0% · BE 12.1% · $158/mo',do:''},
   {id:'w1p3',tag:'pause',t:'PAUSE — B07Y8VGJVS | Tacos 5 — product',m:'True ACOS <b>60%</b> · halo 85% · BE 14.1% · $182/mo',do:''},
@@ -226,9 +226,6 @@ const PLAN=[
   {id:'w1b1',tag:'bid',t:'Bid −50% — B07Y8VGJVS | Tacos 5 — phrase',m:'True ACOS <b>27.6%</b> vs 14.1% break-even · losing <b>$59/month</b> · <b>96% of spend is generic</b>, and that generic portion runs at 47.4% ACOS',do:'<b>Verified 12 Aug:</b> a 49% CPC cut is what reaches break-even, so −50% is the right size. Brand spend here is only $11, so a blanket cut costs you nothing. Do NOT pause — 69% of its sales land on profitable siblings. Biggest waste inside it: <b>ergonomic mouse, $46, zero sales</b>.'},
   {id:'w1b2',tag:'bid',t:'DO NOT cut this campaign across the board — B01NBMR61A | Tacos — exact',m:'Blended ACOS is 30.8%, but that hides two opposite halves: <b>brand keywords run at 8.4% ACOS</b> and carry nearly all the revenue, while <b>73% of spend sits on generic terms with ZERO sales</b>.',do:'<b>Corrected 12 Aug.</b> The earlier instruction here was a blanket −45%, which would have throttled <b>evoluent keyboard</b> — $8 spent, $159 back, 5% ACOS. Instead: leave every brand keyword at full bid and cut only the generic ones (see Week 1D). Strip the $60 of generic spend and this campaign becomes $23 → $269 = <b>8.6% ACOS and profitable</b>.',crit:1},
   {id:'w1b3',tag:'bid',t:'Bid −35% — B01NBMR61A | Tacos — product',m:'True ACOS <b>18.6%</b> vs 12.1% break-even · losing $10/month · <b>100% ASIN targeting</b>, so there are no brand keywords to protect',do:'<b>Raised from −30% to −35% on 12 Aug</b> — a 35% CPC cut is what actually reaches break-even; 30% would have left it near 13%, still above the line.<br><br>While you are in there: this campaign targets <b>your own ASINs</b>. <span class="mono">b0075py6hg</span> is your own compact keyboard — $6 spent, zero sales, add it as a negative. <span class="mono">b07y8v3w42</span> is your own VMDMW — $4 → $115 at 3% ACOS, a genuine cross-sell, keep it.'},
-  {id:'w1v1',tag:'build',t:'SWITCH VARIATION — B07Y8VGJVS | Tacos 5 — exact',m:'Remove VMDM B07Y8VGJVS (−$7.20/unit) → add <b>VMDSW B07Y8V19TC</b> (+$17.40/unit)',do:'Add the new SKU, leave both live 48h, then remove the old one. Never delete and recreate the ad group — you would lose the keyword history.',good:1},
-  {id:'w1v2',tag:'build',t:'SWITCH VARIATION — B07Y8VGJVS | Tacos 5 — phrase',m:'Remove VMDM → add <b>VMDLW B08578T74J</b> (+$14.20/unit)',do:'',good:1},
-  {id:'w1v3',tag:'build',t:'SWITCH VARIATION — B0856PZQWT | Tacos 5 — exact',m:'Remove VMDL B0856PZQWT (+$0.50/unit) → add <b>VMDS B07Y8VQ51L</b> (+$13.70/unit)',do:'Highest-value action in the plan and it costs nothing. Expected +$1,175/month at zero extra spend.',good:1},
   {id:'w1n1',tag:'build',t:'BUILD — EZ | VM4RB | B00BNR76J2 | Exact',m:'The only genuinely standalone unadvertised product · $11.40/unit',do:'Exact match only · bid <b>$1.10</b> · budget <b>$12/day</b> · <b>Down only</b> · Top of Search <b>+150%</b> · Product pages 0% · keywords: evoluent vm4rb, evoluent vertical mouse bluetooth, evoluent mouse for mac, bluetooth vertical mouse, vertical mouse for mac',good:1},
   {id:'w1n2',tag:'check',t:'Do NOT build campaigns for VM4SW, VMDLW, VMDSW, VMDS',m:'All four sit inside parents that are already advertised',do:'A separate campaign would bid against your own existing campaigns on the same product page.',crit:1},
   {id:'w1wk',tag:'bid',t:'Replace the weekend shutdown \u2014 before Sat 15 Aug',m:'Cancel the $50 cap and the switch-off. Apply a <b>\u221235% bid on Sat + Sun</b> \u2014 but only where the spend is genuinely non-brand, measured from the search-term report, not guessed from the campaign name.',do:'<b>REDUCE on weekends (majority non-brand spend):</b> B004GXZ69W \u2014 phrase (76% generic) \u00b7 B07Y8VGJVS \u2014 phrase (96% generic) \u00b7 B01NBMR61A \u2014 exact (73% generic) \u00b7 B01NBMR61A \u2014 product (100% ASIN targeting).<br><br><b>DO NOT REDUCE \u2014 these are brand-led and are your best performers:</b> EZ | B006P2594Y | Manual KW (75% brand) \u00b7 Manual KW 2 (89% brand) \u00b7 B07Y8V3W42 \u2014 exact (<b>84% brand</b>) \u00b7 B07Y8V3W42 \u2014 phrase (<b>54% brand</b>) \u00b7 B0856PZQWT \u2014 exact (<b>52% brand</b>) \u00b7 the new VM4RB campaign.<br><br>Amazon has no native day-of-week bid scheduler \u2014 use M19, or a bulk upload every Friday and Monday. Never pause at account level; this is a bid change on named campaigns only.',crit:1}]},
@@ -342,7 +339,7 @@ async function pushRemote(){
 }
 async function diag(){
   const NL = String.fromCharCode(10);
-  let out = "BUILD 7" + NL;
+  let out = "BUILD 8" + NL;
   out += "This device holds: " + Object.keys(S).length + " items" + NL;
   out += "Your name: " + (WHO || "(not set)") + NL;
   try{
