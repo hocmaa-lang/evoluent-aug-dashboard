@@ -132,7 +132,7 @@ footer{margin-top:50px;padding-top:16px;border-top:2px solid var(--ink);font-siz
   <div class="mast-in">
     <div class="eyebrow">Amazon US · Sponsored Products</div>
     <h1>Evoluent — August Execution Dashboard</h1>
-    <div class="sub"><b>BUILD 13 · sync DOWN</b> — if you do not see this line, you are on a cached old copy: press Ctrl+Shift+R (Cmd+Shift+R on Mac).<br>12–31 August 2026 · Excludes B00427TAIK and B0G4TBZBSP · Target: ~$10,000 net for the month — baseline $7,352 (+36%)</div>
+    <div class="sub"><b>BUILD 14 · team sync ON</b> — if you do not see this line, you are on a cached old copy: press Ctrl+Shift+R (Cmd+Shift+R on Mac).<br>12–31 August 2026 · Excludes B00427TAIK and B0G4TBZBSP · Target: ~$10,000 net for the month — baseline $7,352 (+36%)</div>
     <div class="bar">
       <div class="prog"><i id="pbar"></i></div>
       <span class="pct" id="ppct">0 / 0</span>
@@ -284,7 +284,13 @@ const PLAN=[
 const KEY='evoluent_aug_dash_v1';
 const TKEY='evoluent_aug_dash_times_v1';
 const NKEY='evoluent_aug_dash_who';
-const BLOB='https://jsonblob.com/api/jsonBlob/019ff05c-8d05-710e-a133-ebeb42af7cf2';
+// Shared board storage. jsonblob.com started returning 403 on every write at some
+// point during the night of 11-12 Aug 2026 (last good write: Milet, 11 Aug 18:40).
+// Reads there still worked, so nothing was lost - the 14 keys were copied across.
+// Swapping providers is a one-line change: only BLOB and the method in pushRemote
+// are provider-specific. If this one also starts refusing writes, readOnly() below
+// catches it on the first 403 and the page degrades honestly instead of looping.
+const BLOB='https://textdb.dev/api/data/evoluent-aug-2026-f5951b29e4ec8dc4f768692e';
 let S=JSON.parse(localStorage.getItem(KEY)||'{}');
 let T=JSON.parse(localStorage.getItem(TKEY)||'{}');
 let WHO=localStorage.getItem(NKEY)||'';
@@ -367,7 +373,8 @@ async function pushRemote(){
     const r0=await fetch(BLOB+'?t='+Date.now(),{cache:'no-store'});
     if(r0.ok){const d=await r0.json();if(merge(d.state||{},d.times||{}))render();}
     const body={updated:new Date().toISOString().slice(0,16).replace('T',' '),by:WHO||'unnamed',state:S,times:T};
-    const r=await fetch(BLOB,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    // text/plain keeps this a "simple request" so the browser skips the CORS preflight
+    const r=await fetch(BLOB,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(body)});
     if(!r.ok)throw r.status;
     dirty=false;writeFails=0;
     setStatus('synced · you','ok');
@@ -380,7 +387,7 @@ async function pushRemote(){
 }
 async function diag(){
   const NL = String.fromCharCode(10);
-  let out = "BUILD 13" + NL;
+  let out = "BUILD 14" + NL;
   out += "This device holds: " + Object.keys(S).length + " items" + NL;
   out += "Your name: " + (WHO || "(not set)") + NL;
   try{
