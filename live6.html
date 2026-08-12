@@ -132,7 +132,7 @@ footer{margin-top:50px;padding-top:16px;border-top:2px solid var(--ink);font-siz
   <div class="mast-in">
     <div class="eyebrow">Amazon US · Sponsored Products</div>
     <h1>Evoluent — August Execution Dashboard</h1>
-    <div class="sub"><b>BUILD 7 · team sync ON</b> — if you do not see this line, you are on a cached old copy: press Ctrl+Shift+R (Cmd+Shift+R on Mac).<br>12–31 August 2026 · Excludes B00427TAIK and B0G4TBZBSP · Target: ~$10,000 net for the month</div>
+    <div class="sub"><b>BUILD 6 · team sync ON</b> — if you do not see this line, you are on a cached old copy: press Ctrl+Shift+R (Cmd+Shift+R on Mac).<br>12–31 August 2026 · Excludes B00427TAIK and B0G4TBZBSP · Target: ~$10,000 net for the month</div>
     <div class="bar">
       <div class="prog"><i id="pbar"></i></div>
       <span class="pct" id="ppct">0 / 0</span>
@@ -223,9 +223,9 @@ const PLAN=[
   {id:'w1p6',tag:'pause',t:'PAUSE — B0856PZQWT | Tacos 5 — phrase',m:'True ACOS <b>44%</b> · halo 66% · BE 14.1% · $59/mo',do:''},
   {id:'w1p7',tag:'pause',t:'PAUSE — Keyboard B0075PY6HG | Tacso 20 — phrase',m:'True ACOS <b>42%</b> · halo 7% · BE 15.8% · $162/mo',do:''},
   {id:'w1p8',tag:'pause',t:'PAUSE — B07Y8V3W42 | Tacos 5 — auto',m:'No sales at all · $10/mo',do:'Total freed across all eight: <b>$857/month</b>'},
-  {id:'w1b1',tag:'bid',t:'Bid −50% — B07Y8VGJVS | Tacos 5 — phrase',m:'True ACOS <b>27.6%</b> vs 14.1% break-even · losing <b>$59/month</b> · <b>96% of spend is generic</b>, and that generic portion runs at 47.4% ACOS',do:'<b>Verified 12 Aug:</b> a 49% CPC cut is what reaches break-even, so −50% is the right size. Brand spend here is only $11, so a blanket cut costs you nothing. Do NOT pause — 69% of its sales land on profitable siblings. Biggest waste inside it: <b>ergonomic mouse, $46, zero sales</b>.'},
-  {id:'w1b2',tag:'bid',t:'DO NOT cut this campaign across the board — B01NBMR61A | Tacos — exact',m:'Blended ACOS is 30.8%, but that hides two opposite halves: <b>brand keywords run at 8.4% ACOS</b> and carry nearly all the revenue, while <b>73% of spend sits on generic terms with ZERO sales</b>.',do:'<b>Corrected 12 Aug.</b> The earlier instruction here was a blanket −45%, which would have throttled <b>evoluent keyboard</b> — $8 spent, $159 back, 5% ACOS. Instead: leave every brand keyword at full bid and cut only the generic ones (see Week 1D). Strip the $60 of generic spend and this campaign becomes $23 → $269 = <b>8.6% ACOS and profitable</b>.',crit:1},
-  {id:'w1b3',tag:'bid',t:'Bid −35% — B01NBMR61A | Tacos — product',m:'True ACOS <b>18.6%</b> vs 12.1% break-even · losing $10/month · <b>100% ASIN targeting</b>, so there are no brand keywords to protect',do:'<b>Raised from −30% to −35% on 12 Aug</b> — a 35% CPC cut is what actually reaches break-even; 30% would have left it near 13%, still above the line.<br><br>While you are in there: this campaign targets <b>your own ASINs</b>. <span class="mono">b0075py6hg</span> is your own compact keyboard — $6 spent, zero sales, add it as a negative. <span class="mono">b07y8v3w42</span> is your own VMDMW — $4 → $115 at 3% ACOS, a genuine cross-sell, keep it.'},
+  {id:'w1b1',tag:'bid',t:'Bid −50% — B07Y8VGJVS | Tacos 5 — phrase',m:'True ACOS 28% vs BE 14.1%',do:'Do NOT pause. It still feeds halo into profitable siblings.'},
+  {id:'w1b2',tag:'bid',t:'Bid −45% — B01NBMR61A | Tacos — exact',m:'True ACOS 31% vs BE 12.1%',do:''},
+  {id:'w1b3',tag:'bid',t:'Bid −30% — B01NBMR61A | Tacos — product',m:'True ACOS 19% vs BE 12.1%',do:''},
   {id:'w1v1',tag:'build',t:'SWITCH VARIATION — B07Y8VGJVS | Tacos 5 — exact',m:'Remove VMDM B07Y8VGJVS (−$7.20/unit) → add <b>VMDSW B07Y8V19TC</b> (+$17.40/unit)',do:'Add the new SKU, leave both live 48h, then remove the old one. Never delete and recreate the ad group — you would lose the keyword history.',good:1},
   {id:'w1v2',tag:'build',t:'SWITCH VARIATION — B07Y8VGJVS | Tacos 5 — phrase',m:'Remove VMDM → add <b>VMDLW B08578T74J</b> (+$14.20/unit)',do:'',good:1},
   {id:'w1v3',tag:'build',t:'SWITCH VARIATION — B0856PZQWT | Tacos 5 — exact',m:'Remove VMDL B0856PZQWT (+$0.50/unit) → add <b>VMDS B07Y8VQ51L</b> (+$13.70/unit)',do:'Highest-value action in the plan and it costs nothing. Expected +$1,175/month at zero extra spend.',good:1},
@@ -342,7 +342,7 @@ async function pushRemote(){
 }
 async function diag(){
   const NL = String.fromCharCode(10);
-  let out = "BUILD 7" + NL;
+  let out = "BUILD 6" + NL;
   out += "This device holds: " + Object.keys(S).length + " items" + NL;
   out += "Your name: " + (WHO || "(not set)") + NL;
   try{
